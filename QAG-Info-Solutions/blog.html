@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>QAG Info Solutions - Blog</title>
+</head>
+<body>
+    <header>
+        <h1>QAG Info Solutions Blog</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="blog.html">Blog</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Latest Articles</h2>
+            <div id="blogPosts"></div> <!-- Container for blog posts -->
+        </section>
+
+        <section id="adminSection" style="display: none;">
+            <h2>Add a New Blog Post</h2>
+            <form id="blogForm">
+                <input type="hidden" id="blogId" name="blogId"> <!-- Hidden field for blog ID -->
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="content">Content:</label>
+                <textarea id="content" name="content" rows="4" required></textarea>
+
+                <label for="image">Image URL:</label>
+                <input type="url" id="image" name="image">
+
+                <label for="video">Video URL:</label>
+                <input type="url" id="video" name="video">
+
+                <label for="link">Additional Link:</label>
+                <input type="url" id="link" name="link">
+
+                <div class="button-container">
+                    <button type="submit">Submit</button>
+                    <button type="button" id="logoutButton">Logout</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="loginSection">
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+
+                <button type="submit">Login</button>
+                <div id="loginFeedback" style="color: red; margin-top: 10px;"></div> <!-- Feedback message -->
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 QAG Info Solutions</p>
+    </footer>
+
+    <script>
+        const adminUsername = 'admin'; // Set your admin username
+        const adminPassword = 'password'; // Set your admin password
+        let isAdmin = false; // Variable to track admin status
+
+        // Check if the admin is already logged in
+        if (localStorage.getItem('isAdmin') === 'true') {
+            isAdmin = true;
+            document.getElementById('loginSection').style.display = 'none'; // Hide login section
+            document.getElementById('adminSection').style.display = 'block'; // Show admin section
+            fetchBlogs(); // Fetch blogs after checking login status
+        }
+
+        // Function to fetch and display blog posts
+        async function fetchBlogs() {
+            const response = await fetch('http://localhost:5000/api/blog');
+            const blogs = await response.json();
+            const blogPostsContainer = document.getElementById('blogPosts');
+            blogPostsContainer.innerHTML = ''; // Clear existing posts
+
+            blogs.forEach(blog => {
+                const blogPost = document.createElement('div');
+                blogPost.innerHTML = `
+                    <h3>${blog.title}</h3>
+                    <p>${blog.content}</p>
+                    ${blog.image ? `<img src="${blog.image}" alt="Blog Image" />` : ''}
+                    ${blog.video ? `<iframe src="${blog.video.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>` : ''}
+                    ${blog.link ? `<a href="${blog.link}" target="_blank">Read more</a>` : ''}
+                    <div class="edit-delete-buttons"> <!-- Container for edit and delete buttons -->
+                        ${isAdmin ? `
+                            <button onclick="editBlog('${blog._id}', '${blog.title}', '${blog.content}', '${blog.image}', '${blog.video}', '${blog.link}')">Edit</button>
+                            <button onclick="deleteBlog('${blog._id}')">Delete</button>
+                        ` : ''}
+                    </div>
+                    <hr>
+                `;
+                blogPostsContainer.appendChild(blogPost);
+            });
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check credentials (replace with your actual validation logic)
+            if (username === 'admin' && password === 'password') {
+                // Set admin status in localStorage
+                localStorage.setItem('isAdmin', 'true');
+                
+                // Hide the login section and show the admin section
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('adminSection').style.display = 'block'; // Ensure this section is visible
+
+                document.getElementById('loginFeedback').textContent = 'Login successful!';
+            } else {
+                document.getElementById('loginFeedback').textContent = 'Invalid credentials. Please try again.';
+            }
+        });
+
+        // Check admin status on page load
+        window.onload = function() {
+            const isAdmin = localStorage.getItem('isAdmin');
+            if (isAdmin) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('adminSection').style.display = 'block'; // Show admin section if logged in
+            }
+        };
+
+        // Logout functionality
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            localStorage.removeItem('isAdmin'); // Remove admin status from localStorage
+            document.getElementById('adminSection').style.display = 'none'; // Hide admin section
+            document.getElementById('loginSection').style.display = 'block'; // Show login section
+            document.getElementById('loginForm').reset(); // Reset the form
+        });
+
+        // Function to delete a blog post
+        async function deleteBlog(id) {
+            const response = await fetch(`http://localhost:5000/api/blog/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                console.log('Blog post deleted');
+                fetchBlogs(); // Refresh the blog posts
+            } else {
+                console.error('Error deleting blog post');
+            }
+        }
+
+        // Function to edit a blog post
+        function editBlog(id, title, content, image, video, link) {
+            document.getElementById('blogId').value = id; // Set blog ID
+            document.getElementById('title').value = title;
+            document.getElementById('content').value = content;
+            document.getElementById('image').value = image;
+            document.getElementById('video').value = video;
+            document.getElementById('link').value = link;
+
+            // Show the admin section and hide the login section
+            document.getElementById('adminSection').style.display = 'block';
+            document.getElementById('loginSection').style.display = 'none';
+        }
+
+        document.getElementById('blogForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const id = document.getElementById('blogId').value; // Get blog ID
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const image = document.getElementById('image').value;
+            const video = document.getElementById('video').value;
+            const link = document.getElementById('link').value;
+
+            if (id) {
+                // Update existing blog post
+                const response = await fetch(`http://localhost:5000/api/blog/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, content, image, video, link }),
+                });
+
+                if (response.ok) {
+                    console.log('Blog post updated');
+                    fetchBlogs(); // Refresh the blog posts
+                    document.getElementById('blogForm').reset(); // Reset the form
+                } else {
+                    console.error('Error updating blog post');
+                }
+            } else {
+                // Create new blog post
+                const response = await fetch('http://localhost:5000/api/blog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, content, image, video, link }),
+                });
+
+                if (response.ok) {
+                    console.log('Blog post created');
+                    fetchBlogs(); // Refresh the blog posts
+                    document.getElementById('blogForm').reset(); // Reset the form
+                } else {
+                    console.error('Error creating blog post');
+                }
+            }
+        });
+
+        // Fetch blogs on page load
+        fetchBlogs();
+    </script>
+</body>
+</html>

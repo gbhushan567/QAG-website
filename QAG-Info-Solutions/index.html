@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>QAG Info Solutions</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to QAG Info Solutions</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="blog.html">Blog</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Our Tutoring Services</h2>
+            <h3>1. Tutoring in Java programming and Selenium.</h3>
+            <!-- Add more details about the services -->
+            <div class="service">
+                <h3>2. Developing 6 Month Industrial Training Projects</h3>
+                <p>We offer comprehensive training projects for students looking to gain practical experience in their field. Our projects are designed to enhance your skills and prepare you for the industry.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Query Form</h2>
+            <form id="queryForm">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="contact">Contact No:</label>
+                <input type="tel" id="contact" name="contact" required>
+
+                <label for="email">Email ID:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="query">Your Query:</label>
+                <textarea id="query" name="query" rows="4" required></textarea>
+
+                <button type="submit">Submit Query</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 QAG Info Solutions</p>
+    </footer>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const name = document.getElementById('name').value;
+            const contact = document.getElementById('contact').value;
+            const email = document.getElementById('email').value;
+            const query = document.getElementById('query').value;
+
+            // Here you can send the query data to your server or handle it as needed
+            console.log('Query submitted:', { name, contact, email, query });
+
+            // Reset the form after submission
+            document.getElementById('queryForm').reset();
+            alert('Your query has been submitted successfully!');
+        });
+    </script>
+</body>
+</html>

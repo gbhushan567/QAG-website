@@ -1,0 +1,166 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+h1, h2 {
+    margin: 0;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+label {
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="password"] {
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+}
+
+.edit-delete-buttons {
+    margin-top: -10px;
+}
+
+#loginForm input[type="password"] {
+    margin-bottom: 15px;
+}
+
+#username, #password {
+    width: calc(100% - 22px);
+}
+
+.button-container button {
+    margin-right: 15px;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #4CAF50;
+    color: white;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.edit-delete-buttons button {
+    margin-top: 10px;
+}
+
+/* Styles for the admin login form */
+#loginSection {
+    max-width: 400px; /* Set a maximum width for the form */
+    margin: 20px auto; /* Center the form */
+    padding: 20px; /* Add padding */
+    border: 1px solid #ccc; /* Border around the form */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #f9f9f9; /* Light background color */
+}
+
+form {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+label {
+    margin: 10px 0 5px; /* Space above and below labels */
+    font-weight: bold; /* Make labels bold */
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 10px; /* Add padding inside input fields */
+    border: 1px solid #ccc; /* Border for input fields */
+    border-radius: 4px; /* Round the corners */
+    margin-bottom: 15px; /* Space below input fields */
+    width: 100%; /* Full width */
+    box-sizing: border-box; /* Include padding and border in width */
+}
+
+button {
+    padding: 10px; /* Padding for buttons */
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none; /* No border */
+    border-radius: 4px; /* Round the corners */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
