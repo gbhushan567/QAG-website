@@ -2,17 +2,33 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const nodemailer = require('nodemailer'); // Optional: for sending emails
-const twilio = require('twilio'); // Import Twilio
-require('dotenv').config(); // Load environment variables
+const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const saltRounds = 10;
+const password = 'password123';
+const hashedPassword = bcrypt.hashSync(password, saltRounds);
+
+async function initializeDatabase() {
+    const newUser = new User({
+        username: 'admin',
+        password: hashedPassword,
+        role: 'admin'
+    });
+    await newUser.save(); // Save the new user to the database
+}
+
+// Call the function to initialize the database
+initializeDatabase().catch(err => console.error('Error initializing database:', err));
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({ secret: 'your_secret_key', resave: false, saveUninitialized: true }));
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/qag_info_solutions', {
@@ -20,36 +36,16 @@ mongoose.connect('mongodb://localhost:27017/qag_info_solutions', {
     useUnifiedTopology: true,
 });
 
-// Function to fetch and display blog posts
-async function fetchBlogs() {
-    const response = await fetch('http://localhost:5000/api/blog');
-    const blogs = await response.json();
-    const blogPostsContainer = document.getElementById('blogPosts');
-    blogPostsContainer.innerHTML = ''; // Clear existing posts
+// User Schema and Model
+const userSchema = new mongoose.Schema({
+    username: String,
+    password: String,
+    role: String,
+});
 
-    blogs.forEach(blog => {
-        const blogPost = document.createElement('div');
-        blogPost.innerHTML = `
-            <a href="/blog/${blog._id}" style="text-decoration: none; color: inherit;">
-                <h3>${blog.title}</h3>
-                <p>${blog.content}</p>
-                ${blog.image ? `<img src="${blog.image}" alt="Blog Image" />` : ''}
-                ${blog.video ? `<iframe src="${blog.video.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>` : ''}
-                ${blog.link ? `<a href="${blog.link}" target="_blank">Read more</a>` : ''}
-            </a>
-            <div class="edit-delete-buttons">
-                ${isAdmin ? `
-                    <button onclick="editBlog('${blog._id}', '${blog.title}', '${blog.content}', '${blog.image}', '${blog.video}', '${blog.link}')">Edit</button>
-                    <button onclick="deleteBlog('${blog._id}')">Delete</button>
-                ` : ''}
-            </div>
-            <hr>
-        `;
-        blogPostsContainer.appendChild(blogPost);
-    });
-}
+const User = mongoose.model('User', userSchema);
 
-// Define a Schema and Model
+// Blog Schema and Model
 const blogSchema = new mongoose.Schema({
     title: String,
     content: String,
@@ -60,83 +56,41 @@ const blogSchema = new mongoose.Schema({
 
 const Blog = mongoose.model('Blog', blogSchema);
 
-// Define a Schema and Model for Queries
-const querySchema = new mongoose.Schema({
-    name: String,
-    contact: String,
-    email: String,
-    query: String,
+// Admin Login
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).send('Invalid username or password');
+    }
+
+    req.session.user = user; // Set user session
+    res.status(200).send('Login successful');
 });
 
-const Query = mongoose.model('Query', querySchema);
+// Logout
+app.post('/api/logout', (req, res) => {
+    req.session.destroy();
+    res.status(200).send('Logout successful');
+});
 
-// Twilio configuration
-const accountSid = process.env.TWILIO_ACCOUNT_SID; // Your Twilio Account SID
-const authToken = process.env.TWILIO_AUTH_TOKEN; // Your Twilio Auth Token
-const client = twilio(accountSid, authToken); // Create a Twilio client
+// Fetch all blogs
+app.get('/api/blog', async (req, res) => {
+    try {
+        const blogs = await Blog.find();
+        res.status(200).json(blogs);
+    } catch (error) {
+        console.error('Error fetching blogs:', error);
+        res.status(500).send('Error fetching blogs');
+    }
+});
 
-// API Endpoints
+// Create a new blog post
 app.post('/api/blog', async (req, res) => {
     const newBlog = new Blog(req.body);
     await newBlog.save();
     res.status(201).send(newBlog);
-});
-
-app.get('/api/blog', async (req, res) => {
-    const blogs = await Blog.find();
-    res.status(200).send(blogs);
-});
-
-// Update a blog post
-app.put('/api/blog/:id', async (req, res) => {
-    const { id } = req.params;
-    const updatedBlog = await Blog.findByIdAndUpdate(id, req.body, { new: true });
-    res.status(200).send(updatedBlog);
-});
-
-// Delete a blog post
-app.delete('/api/blog/:id', async (req, res) => {
-    const { id } = req.params;
-    await Blog.findByIdAndDelete(id);
-    res.status(204).send(); // No content
-});
-
-// Endpoint to handle query submissions
-app.post('/api/submit-query', async (req, res) => {
-    const { name, contact, email, query } = req.body;
-
-    // Create a new Query document
-    const newQuery = new Query({
-        name,
-        contact,
-        email,
-        query,
-    });
-
-    try {
-        // Save the query to the database
-        await newQuery.save();
-        console.log('Query saved:', newQuery);
-        res.status(201).send('Query submitted successfully!');
-    } catch (error) {
-        console.error('Error saving query:', error);
-        res.status(500).send('Error saving query');
-    }
-});
-
-// Endpoint to get a single blog post by ID
-app.get('/api/blog/:id', async (req, res) => {
-    const { id } = req.params;
-    const blog = await Blog.findById(id);
-    if (!blog) {
-        return res.status(404).send('Blog post not found');
-    }
-    res.status(200).send(blog);
-});
-
-// Serve the blog post HTML file
-app.get('/blog/:id', (req, res) => {
-    res.sendFile(path.join(__dirname, 'blog-post.html'));
 });
 
 // Start the server

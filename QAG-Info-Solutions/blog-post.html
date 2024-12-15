@@ -14,21 +14,24 @@
         <!-- Blog post content will be loaded here -->
     </main>
     <script>
-        // Function to fetch and display the blog post
         async function fetchBlogPost() {
-            const id = window.location.pathname.split('/').pop(); // Get the blog post ID from the URL
+            const id = new URLSearchParams(window.location.search).get('id'); // Get the blog post ID from the URL
+            console.log('Blog Post ID:', id); // Add this line to check the ID
 
             const response = await fetch(`http://localhost:5000/api/blog/${id}`);
+            console.log('Response:', response); // Log the response
             if (response.ok) {
                 const blogPost = await response.json();
                 document.getElementById('blogPostContent').innerHTML = `
                     <h2>${blogPost.title}</h2>
-                    <p>${blogPost.content}</p>
+                    <p>${blogPost.content.replace(/\n/g, '</p><p>')}</p>
                     ${blogPost.image ? `<img src="${blogPost.image}" alt="Blog Image" />` : ''}
                     ${blogPost.video ? `<iframe src="${blogPost.video.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>` : ''}
                     ${blogPost.link ? `<a href="${blogPost.link}" target="_blank">Read more</a>` : ''}
                 `;
             } else {
+                const errorMessage = await response.text(); // Get the error message
+                console.error('Error fetching blog post:', errorMessage); // Log the error
                 document.getElementById('blogPostContent').innerHTML = '<p>Blog post not found.</p>';
             }
         }
