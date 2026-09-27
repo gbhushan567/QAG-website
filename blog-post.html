@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Blog Post</title>
+</head>
+<body>
+    <header>
+        <h1>Blog Post</h1>
+    </header>
+    <main id="blogPostContent">
+        <!-- Blog post content will be loaded here -->
+    </main>
+    <script>
+        async function fetchBlogPost() {
+            const id = new URLSearchParams(window.location.search).get('id'); // Get the blog post ID from the URL
+            console.log('Blog Post ID:', id); // Add this line to check the ID
+
+            const response = await fetch(`http://localhost:5000/api/blog/${id}`);
+            console.log('Response:', response); // Log the response
+            if (response.ok) {
+                const blogPost = await response.json();
+                document.getElementById('blogPostContent').innerHTML = `
+                    <h2>${blogPost.title}</h2>
+                    <p>${blogPost.content.replace(/\n/g, '</p><p>')}</p>
+                    ${blogPost.image ? `<img src="${blogPost.image}" alt="Blog Image" />` : ''}
+                    ${blogPost.video ? `<iframe src="${blogPost.video.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen></iframe>` : ''}
+                    ${blogPost.link ? `<a href="${blogPost.link}" target="_blank">Read more</a>` : ''}
+                `;
+            } else {
+                const errorMessage = await response.text(); // Get the error message
+                console.error('Error fetching blog post:', errorMessage); // Log the error
+                document.getElementById('blogPostContent').innerHTML = '<p>Blog post not found.</p>';
+            }
+        }
+
+        // Fetch the blog post when the page loads
+        fetchBlogPost();
+    </script>
+</body>
+</html>
